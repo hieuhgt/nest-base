@@ -50,7 +50,7 @@ $ pnpm run start:prod
 $ docker compose up -d
 # production
 docker build -t my-nest-app .
-docker run -p PORT:PORT --name my-nest-container my-nest-app
+docker run -p PORT:PORT --name my-nest-container my-nest-app # add -d if you want to run in detached mode
 ```
 
 ## Run tests
