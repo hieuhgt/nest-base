@@ -7,7 +7,7 @@ COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN \
   if [ -f package-lock.json ]; then npm ci; \
   elif [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile --prefer-offline; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -34,7 +34,7 @@ ENV NODE_ENV production
 RUN \
   if [ -f package-lock.json ]; then npm ci --only=production && npm cache clean --force; \
   elif [ -f yarn.lock ]; then yarn --frozen-lockfile --production && yarn cache clean; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile --prod; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile --prefer-offline --prod=false; \
   else echo "Lockfile not found." && exit 1; \
   fi
 

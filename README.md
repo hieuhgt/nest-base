@@ -44,6 +44,14 @@ $ pnpm run start:dev
 # production mode
 $ pnpm run start:prod
 ```
+### Docker
+```bash
+# local
+$ docker compose up -d
+# production
+docker build -t my-nest-app .
+docker run -p PORT:PORT --name my-nest-container my-nest-app
+```
 
 ## Run tests
 
