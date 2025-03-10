@@ -1,16 +1,68 @@
 version: '3.8'
 
 services:
-  nestjs-api:
-    container_name: nestjs-api
-    restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+  # nestjs-api:
+  #   container_name: nestjs-api
+  #   restart: unless-stopped
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   ports:
+  #     - 3000:3000
+  #   env_file:
+  #     - ./.env
+  prometheus:
+    image: prom/prometheus:v3.2.1
     volumes:
-      - .:/app
-      - /app/node_modules
+      - ./monitoring-service-config/prometheus/prometheus.yml:/etc/promotheus/promotheus.yml
     ports:
-      - 3000:3000
-    env_file:
-      - ./.env
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+
+  loki:
+    image: grafana/loki:3.4.2
+    ports:
+      - "3100:3100"
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - ./monitoring-service-config/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.121.0
+    command: [ "--config=/etc/otel-collector/config.yml" ]
+    volumes:
+      - ./monitoring-service-config/otel/otel-collector-config.yml:/etc/otel-collector/config.yml
+    ports:
+      - "4318:4318" # OTLP HTTP (adjusted to avoid conflict)
+      - "4317:4317"
+      - "9464:9464" # Promotheus metrics endpoint
+      - "55679:55679" # zPages
+      - "9464:9464" # Health check
+    depends_on:
+      - tempo
+      - loki
+
+  tempo:
+    image: grafana/tempo:latest
+    ports:
+      - "4316:4317" # OTLP gRPC
+      - "4320:4318" # OTLP HTTP (host:4320 -> container:4318)
+      - "14268:14268" # Zipkin
+      - "3200:3200" # Tempo UI
+    command: [ "-config.file=/etc/tempo.yml" ]
+    volumes:
+      - ./monitoring-service-config/tempo/tempo.yml:/etc/tempo.yml
