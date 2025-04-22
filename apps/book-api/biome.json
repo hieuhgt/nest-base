@@ -15,8 +15,7 @@
       "**/test/**",
       "**/package.json",
       "**/package-lock.json",
-      "**/turbo.json",
-      "**/.vscode/**"
+      "**/turbo.json"
     ]
   },
 
